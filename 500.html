@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>系统故障 | Joey Blog </title>
+    <!-- 引入高科技感字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,11 +21,7 @@
             --font-mono: 'Share Tech Mono', monospace;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg-dark);
@@ -161,7 +158,7 @@
 
         h1 {
             font-family: var(--font-title);
-            font-size: 28px;
+            font-size: 26px; 
             font-weight: 900;
             margin-bottom: 16px;
             letter-spacing: 1px;
@@ -222,14 +219,12 @@
             color: var(--text-secondary);
             font-size: 16px;
             line-height: 1.5;
-            /* 移除原本的大边距，为分割文本做准备 */
             margin-bottom: 8px;
             border-left: 3px solid var(--neon-purple);
             padding-left: 15px;
             text-align: left;
         }
         
-        /* 第二段文字的样式，顶部留白 */
         p.message.part-two {
             margin-top: 8px;
             margin-bottom: 30px;
@@ -240,14 +235,13 @@
             font-weight: bold;
         }
 
-        /* 修改：Cloudflare 500 错误详情框样式，减少上下间距以融入文本流 */
+        /* Cloudflare 500 Error Box Container */
         .cf-error-box-container {
             margin: 15px 0;
             color: var(--text-secondary);
             font-size: 14px;
             text-align: left;
             opacity: 0.95;
-            /* 增加一点缩进以对齐文字 */
             padding-left: 5px; 
         }
 
@@ -351,6 +345,7 @@
             <img src="https://images.joeyblog.net/1.svg" alt="Joey Blog" class="avatar">
             
             <div class="lock-badge">
+                <!-- 500错误：使用警告图标 -->
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -361,12 +356,11 @@
 
         <h1 data-text="SYSTEM FAILURE">SYSTEM FAILURE</h1>
         
-        <!-- 分割文案，放入错误详情框 -->
         <p class="message">
-            <span style="color: var(--neon-yellow);">[警报]</span>：核心神经中枢发生严重内部错误 ↓
+            <span style="color: var(--neon-yellow);">[警报]</span>：核心神经中枢发生严重内部错误 (5xx)。 ↓
         </p>
 
-        <!-- 必需：Cloudflare 500 错误详情占位符 -->
+        <!-- 商业版专属：500 Class 错误详情框占位符 -->
         <div class="cf-error-box-container">
             ::CLOUDFLARE_ERROR_500S_BOX::
         </div>
@@ -386,7 +380,13 @@
         </div>
 
         <div class="tech-footer">
-            <div class="tech-item"><span class="label">ERROR_CODE:</span><span class="value">500_INTERNAL_ERROR</span></div>
+            <!-- 动态更新的错误代码区域 -->
+            <div class="tech-item">
+                <span class="label">ERROR_CODE:</span>
+                <span class="value" id="error-code-val">5XX_SYSTEM_FAILURE</span>
+            </div>
+            
+            <div class="tech-item"><span class="label">REGION:</span><span class="value" id="geo-loc">::GEO::</span></div>
             <div class="tech-item"><span class="label">RAY_ID:</span><span class="value" id="ray-id">::RAY_ID::</span></div>
             <div class="tech-item"><span class="label">CLIENT_IP:</span><span class="value" id="client-ip">::CLIENT_IP::</span></div>
         </div>
@@ -396,11 +396,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             const rayIdEl = document.getElementById('ray-id');
             const ipEl = document.getElementById('client-ip');
+            const geoEl = document.getElementById('geo-loc');
+            const errorCodeEl = document.getElementById('error-code-val');
+            const errorBoxContainer = document.querySelector('.cf-error-box-container');
             
-            // 模拟 500 错误框的显示 (仅在 Canvas 预览时生效)
-            const errorBox = document.querySelector('.cf-error-box-container');
-            if (errorBox && errorBox.innerText.includes('::')) {
-                errorBox.innerHTML = `
+            // -----------------------------------------------------
+            // 核心逻辑升级：确保“所见即真实”
+            // -----------------------------------------------------
+
+            // 1. 模拟 500 错误框 (仅在 Canvas 预览时生效，Cloudflare 会替换掉)
+            if (errorBoxContainer && errorBoxContainer.innerText.includes('::')) {
+                errorBoxContainer.innerHTML = `
                     <div style="border: 1px dashed var(--neon-pink); padding: 15px; background: rgba(255, 42, 109, 0.05); text-align: center;">
                         <div style="font-weight:bold; color:var(--neon-pink); margin-bottom:5px;">Error 522</div>
                         <div style="font-size:12px;">Connection Timed Out</div>
@@ -408,12 +414,54 @@
                 `;
             }
 
-            if (rayIdEl.innerText.includes('::')) {
-                rayIdEl.innerText = 'CYBER-' + Math.random().toString(16).substr(2, 8).toUpperCase();
-                rayIdEl.style.color = '#f7f716';
+            // 2. 动态提取真实 Error Code (最关键的修改)
+            // 脚本会读取 Cloudflare 注入的错误详情框内容，提取出 "Error 522" 这样的数字
+            // 并实时更新到底部 ERROR_CODE 字段
+            setTimeout(() => {
+                if (errorBoxContainer) {
+                    const content = errorBoxContainer.innerText || "";
+                    const match = content.match(/Error\s+(\d{3})/i); // 查找 "Error xxx"
+                    if (match && match[1]) {
+                        // 找到具体代码 (如 522)，更新 UI
+                        const code = match[1];
+                        let desc = "EXECUTION_FAILURE";
+                        // 简单的映射逻辑，增加赛博朋克感
+                        if(code === '522') desc = "CONNECTION_TIMED_OUT";
+                        if(code === '502') desc = "BAD_GATEWAY";
+                        if(code === '504') desc = "GATEWAY_TIMEOUT";
+                        
+                        errorCodeEl.innerText = `${code}_${desc}`;
+                        errorCodeEl.style.color = 'var(--neon-pink)'; // 高亮显示真实错误
+                    }
+                }
+            }, 500); // 稍微延迟以等待 DOM 渲染
+
+            // 3. 智能 Ray ID 生成 (如果 CF 没替换)
+            if (rayIdEl && rayIdEl.innerText.includes('::')) {
+                const randomHex = Math.random().toString(16).substr(2, 16);
+                rayIdEl.innerText = randomHex + '-SIN'; 
+                rayIdEl.style.color = 'var(--text-primary)'; 
             }
-            if (ipEl.innerText.includes('::')) {
-                ipEl.innerText = '192.168.X.X (模拟连接)';
+
+            // 4. 强力 IP 抓取 (如果 CF 没替换 IP，前端自动抓取)
+            if (ipEl && ipEl.innerText.includes('::')) {
+                ipEl.innerText = 'SCANNING...'; 
+                ipEl.style.color = 'var(--neon-cyan)';
+                
+                fetch('https://api.ipify.org?format=json')
+                    .then(response => response.json())
+                    .then(data => {
+                        ipEl.innerText = data.ip; 
+                        ipEl.style.color = 'var(--text-primary)'; 
+                    })
+                    .catch(err => {
+                        ipEl.innerText = 'UNKNOWN_HOST'; 
+                    });
+            }
+
+            // 5. 处理 GEO (如果 CF 没替换)
+            if (geoEl && geoEl.innerText.includes('::')) {
+                geoEl.innerText = 'UNKNOWN_SECTOR';
             }
         });
     </script>
