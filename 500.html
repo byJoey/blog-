@@ -139,7 +139,6 @@
             z-index: 2;
         }
 
-        /* 修改：500错误用警告图标替换锁图标 */
         .lock-badge {
             position: absolute;
             bottom: 0px;
@@ -223,15 +222,33 @@
             color: var(--text-secondary);
             font-size: 16px;
             line-height: 1.5;
-            margin-bottom: 36px;
+            /* 移除原本的大边距，为分割文本做准备 */
+            margin-bottom: 8px;
             border-left: 3px solid var(--neon-purple);
             padding-left: 15px;
             text-align: left;
         }
         
+        /* 第二段文字的样式，顶部留白 */
+        p.message.part-two {
+            margin-top: 8px;
+            margin-bottom: 30px;
+        }
+        
         p.message span {
             color: var(--neon-pink);
             font-weight: bold;
+        }
+
+        /* 修改：Cloudflare 500 错误详情框样式，减少上下间距以融入文本流 */
+        .cf-error-box-container {
+            margin: 15px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: left;
+            opacity: 0.95;
+            /* 增加一点缩进以对齐文字 */
+            padding-left: 5px; 
         }
 
         .btn-group {
@@ -334,7 +351,6 @@
             <img src="https://images.joeyblog.net/1.svg" alt="Joey Blog" class="avatar">
             
             <div class="lock-badge">
-                <!-- 修改：使用警告图标 -->
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -345,12 +361,19 @@
 
         <h1 data-text="SYSTEM FAILURE">SYSTEM FAILURE</h1>
         
+        <!-- 分割文案，放入错误详情框 -->
         <p class="message">
-            <span style="color: var(--neon-yellow);">[警报]</span>：核心神经中枢发生严重内部错误 (5xx)。<br>
-            服务器暂时无法响应请求，自动重启协议已激活。请稍后重试。
+            <span style="color: var(--neon-yellow);">[警报]</span>：核心神经中枢发生严重内部错误 ↓
         </p>
 
-        <!-- 移除 Captcha Box，500错误不需要验证 -->
+        <!-- 必需：Cloudflare 500 错误详情占位符 -->
+        <div class="cf-error-box-container">
+            ::CLOUDFLARE_ERROR_500S_BOX::
+        </div>
+        
+        <p class="message part-two">
+            服务器暂时无法响应请求，自动重启协议已激活。请稍后重试。
+        </p>
 
         <div class="btn-group">
             <a href="https://www.youtube.com/@joeyblog" target="_blank" class="btn btn-primary">
@@ -364,7 +387,6 @@
 
         <div class="tech-footer">
             <div class="tech-item"><span class="label">ERROR_CODE:</span><span class="value">500_INTERNAL_ERROR</span></div>
-            <!-- 500错误中 GEO 信息不是必须的，但 Ray ID 是关键 -->
             <div class="tech-item"><span class="label">RAY_ID:</span><span class="value" id="ray-id">::RAY_ID::</span></div>
             <div class="tech-item"><span class="label">CLIENT_IP:</span><span class="value" id="client-ip">::CLIENT_IP::</span></div>
         </div>
@@ -375,6 +397,17 @@
             const rayIdEl = document.getElementById('ray-id');
             const ipEl = document.getElementById('client-ip');
             
+            // 模拟 500 错误框的显示 (仅在 Canvas 预览时生效)
+            const errorBox = document.querySelector('.cf-error-box-container');
+            if (errorBox && errorBox.innerText.includes('::')) {
+                errorBox.innerHTML = `
+                    <div style="border: 1px dashed var(--neon-pink); padding: 15px; background: rgba(255, 42, 109, 0.05); text-align: center;">
+                        <div style="font-weight:bold; color:var(--neon-pink); margin-bottom:5px;">Error 522</div>
+                        <div style="font-size:12px;">Connection Timed Out</div>
+                    </div>
+                `;
+            }
+
             if (rayIdEl.innerText.includes('::')) {
                 rayIdEl.innerText = 'CYBER-' + Math.random().toString(16).substr(2, 8).toUpperCase();
                 rayIdEl.style.color = '#f7f716';
