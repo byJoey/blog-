@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统故障 | Joey Blog Cyberpunk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-purple: #bc13fe;
+            --neon-yellow: #f7f716;
+            --bg-dark: #010a12;
+            --card-bg: rgba(10, 20, 40, 0.85);
+            --text-primary: #e0ffff;
+            --text-secondary: #8a9ba8;
+            
+            --font-title: 'Orbitron', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            background-image: 
+                linear-gradient(rgba(5, 217, 232, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(5, 217, 232, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: center center;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .ambient-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(188, 19, 254, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(5, 217, 232, 0.2) 0%, transparent 50%);
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(60px);
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 460px;
+            padding: 40px 30px;
+            clip-path: polygon(
+                0% 20px, 
+                20px 0%, 
+                100% 0%, 
+                100% calc(100% - 20px), 
+                calc(100% - 20px) 100%, 
+                0% 100%
+            );
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 
+                0 0 15px rgba(5, 217, 232, 0.4),
+                inset 0 0 20px rgba(5, 217, 232, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .main-card::before {
+            content: "";
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            z-index: -1;
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-cyan), var(--neon-purple));
+            clip-path: polygon(
+                0% 22px, 22px 0%, 100% 0%, 100% 2px, 24px 2px, 2px 24px, 2px 100%, 0% 100%
+            );
+            opacity: 0.8;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .avatar-wrapper::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px dashed var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink);
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .avatar {
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--neon-cyan);
+            background-color: #000;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 修改：500错误用警告图标替换锁图标 */
+        .lock-badge {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            background: var(--bg-dark);
+            color: var(--neon-yellow);
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 2px solid var(--neon-yellow);
+            box-shadow: 0 0 10px var(--neon-yellow);
+            z-index: 3;
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse { 50% { box-shadow: 0 0 25px var(--neon-yellow); opacity: 0.8; } }
+
+        h1 {
+            font-family: var(--font-title);
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            color: var(--text-primary);
+            text-shadow: 
+                2px 2px 0px var(--neon-pink),
+                -2px -2px 0px var(--neon-cyan);
+            animation: glitch-skew 4s infinite linear alternate-reverse;
+        }
+
+        h1::before, h1::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--card-bg);
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+        }
+        h1::before {
+            left: -3px;
+            text-shadow: -2px 0 var(--neon-pink);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        h1::after {
+            left: 3px;
+            text-shadow: -2px 0 var(--neon-cyan);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip: rect(30px, 9999px, 10px, 0); }
+            20% { clip: rect(85px, 9999px, 90px, 0); }
+            40% { clip: rect(12px, 9999px, 60px, 0); }
+            60% { clip: rect(65px, 9999px, 20px, 0); }
+            80% { clip: rect(45px, 9999px, 70px, 0); }
+            100% { clip: rect(95px, 9999px, 35px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 80px, 0); }
+            20% { clip: rect(12px, 9999px, 35px, 0); }
+            40% { clip: rect(95px, 9999px, 25px, 0); }
+            60% { clip: rect(45px, 9999px, 75px, 0); }
+            80% { clip: rect(15px, 9999px, 55px, 0); }
+            100% { clip: rect(70px, 9999px, 10px, 0); }
+        }
+        @keyframes glitch-skew {
+            0% { transform: skew(2deg); }
+            10% { transform: skew(-2deg); }
+            20% { transform: skew(1deg); }
+            30% { transform: skew(-1deg); }
+            40% { transform: skew(0deg); }
+            100% { transform: skew(0deg); }
+        }
+
+        p.message {
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 36px;
+            border-left: 3px solid var(--neon-purple);
+            padding-left: 15px;
+            text-align: left;
+        }
+        
+        p.message span {
+            color: var(--neon-pink);
+            font-weight: bold;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            padding: 16px;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--neon-pink), #ff0000);
+            color: #fff;
+            border: none;
+            box-shadow: 0 0 20px rgba(255, 42, 109, 0.4);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 40px rgba(255, 42, 109, 0.7);
+            text-shadow: 0 0 5px #fff;
+        }
+        .btn::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(
+                to right, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent
+            );
+            transform: rotate(45deg) translateY(100%);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        .btn:hover::after {
+            opacity: 1;
+            transform: rotate(45deg) translateY(-100%);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: inset 0 0 10px rgba(5, 217, 232, 0.2);
+        }
+        .btn-secondary:hover {
+            background: rgba(5, 217, 232, 0.1);
+            box-shadow: 0 0 25px rgba(5, 217, 232, 0.5), inset 0 0 15px rgba(5, 217, 232, 0.3);
+            text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .tech-footer {
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 2px dashed rgba(5, 217, 232, 0.3);
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .tech-footer::before {
+            content: "> SYSTEM DIAGNOSTICS:";
+            display: block;
+            color: var(--neon-yellow);
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .tech-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        .tech-item span.label { color: var(--neon-cyan); }
+        .tech-item span.value { color: var(--text-primary); user-select: all; }
+
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+
+    <div class="main-card">
+        <div class="avatar-wrapper">
+            <img src="https://images.joeyblog.net/1.svg" alt="Joey Blog" class="avatar">
+            
+            <div class="lock-badge">
+                <!-- 修改：使用警告图标 -->
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+        </div>
+
+        <h1 data-text="SYSTEM FAILURE">SYSTEM FAILURE</h1>
+        
+        <p class="message">
+            <span style="color: var(--neon-yellow);">[警报]</span>：核心神经中枢发生严重内部错误 (5xx)。<br>
+            服务器暂时无法响应请求，自动重启协议已激活。请稍后重试。
+        </p>
+
+        <!-- 移除 Captcha Box，500错误不需要验证 -->
+
+        <div class="btn-group">
+            <a href="https://www.youtube.com/@joeyblog" target="_blank" class="btn btn-primary">
+                <span style="margin-right: 10px;">▶</span> 转移至备用频道 (YouTube)
+            </a>
+            
+            <a href="mailto:admin@jhb.ovh" class="btn btn-secondary">
+                <span style="margin-right: 10px;">✉</span> 报告故障 (Report Bug)
+            </a>
+        </div>
+
+        <div class="tech-footer">
+            <div class="tech-item"><span class="label">ERROR_CODE:</span><span class="value">500_INTERNAL_ERROR</span></div>
+            <!-- 500错误中 GEO 信息不是必须的，但 Ray ID 是关键 -->
+            <div class="tech-item"><span class="label">RAY_ID:</span><span class="value" id="ray-id">::RAY_ID::</span></div>
+            <div class="tech-item"><span class="label">CLIENT_IP:</span><span class="value" id="client-ip">::CLIENT_IP::</span></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rayIdEl = document.getElementById('ray-id');
+            const ipEl = document.getElementById('client-ip');
+            
+            if (rayIdEl.innerText.includes('::')) {
+                rayIdEl.innerText = 'CYBER-' + Math.random().toString(16).substr(2, 8).toUpperCase();
+                rayIdEl.style.color = '#f7f716';
+            }
+            if (ipEl.innerText.includes('::')) {
+                ipEl.innerText = '192.168.X.X (模拟连接)';
+            }
+        });
+    </script>
+</body>
+</html>
